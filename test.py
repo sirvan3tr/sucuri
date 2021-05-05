@@ -1,7 +1,23 @@
 import unittest
-
+import timeit
 from sucuri import Files
 from sucuri import rendering
+
+
+name = 'test/includefile.suc'
+text_example = """
+html
+    body
+        h1 Title
+        a(href='#') This is my link
+"""
+
+template = rendering.template("test/textfile.suc", {"text": "Hello! I'm here!"})
+def tt():
+    rendering.template("test/textfile.suc", {"text": "Hello! I'm here!"})
+t = timeit.timeit('tt()', number=200000, globals=globals())
+print(t)
+print(template)
 
 class TestFiles( unittest.TestCase ):
 
