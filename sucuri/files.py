@@ -342,26 +342,31 @@ def _substring(text, ini, end):
             result = text[ini:]
     return result
 
-def _replace(text, obj=None):
-    if obj:
-        while text.count(xbracket) > 0:
-            data = text[text.find(xbracket):text.find(ybracket)+2]
-            elem = text[text.find(xbracket)+2:text.find(ybracket)].strip()
-            idx = ""
-            if _instr(elem, '[') > 0 and _instr(elem, ']') > 0:
-                idx = _substring(elem, _instr(elem, '[') +1, _instr(elem, ']'))
-                elem = _substring(elem, 0, _instr(elem, '['))
-            if elem in obj:
-                vlr = ''
-                if idx == "":
-                    vlr = str(obj[elem])
-                else:
-                    l = obj[elem]
-                    vlr = str(l[int(idx)])
-                text = text.replace(data, vlr)
+
+def _replace(text: str, obj: dict) -> str:
+    """
+    Replaces the dynamic variables with the given ones from a dictionary.
+    """
+    while text.count(xbracket) > 0:
+        data = text[text.find(xbracket):text.find(ybracket)+2]
+        elem = text[text.find(xbracket)+2:text.find(ybracket)].strip()
+        idx = ""
+        if _instr(elem, '[') > 0 and _instr(elem, ']') > 0:
+            idx = _substring(elem, _instr(elem, '[') +1, _instr(elem, ']'))
+            elem = _substring(elem, 0, _instr(elem, '['))
+        if elem in obj:
+            vlr = ''
+            if idx == "":
+                vlr = str(obj[elem])
             else:
-                text = text.replace(data, '')
+                l = obj[elem]
+                vlr = str(l[int(idx)])
+            text = text.replace(data, vlr)
+        else:
+            text = text.replace(data, '')
+
     return text
+
 
 def _ruletxt(textline):
     result = _substring(textline, _instr(textline, '<') +1, _instr(textline, '>')).strip()
