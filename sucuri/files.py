@@ -2,24 +2,26 @@ import os
 
 class Files:
     def __init__( self ):
-        self.cashed = {}
+        self.cashed = {}  # filename: list( file lines )
         self.styles = []
         self.scripts = []
 
-    def add( self, fileName ):
+    def add(self, fileName: str) -> None:
         if not ( fileName in self.cashed ):
             root = os.getcwd()
             readFile = open( root + '/' + fileName, 'r' , encoding='utf-8')
             self.cashed[fileName] = readFile.readlines()
             readFile.close()
 
-    def get( self, fileName ):
+    def get(self, fileName: str) -> list:
+        """GIVEN a file name RETURN a a file (list contains file lines)"""
         return self.cashed.get( fileName )
 
-    def update( self, fileName, value ):
-        self.cashed[ fileName ] = value
+    def update(self, fileName: str, value: list) -> None:
+        """Update a file's value"""
+        self.cashed[fileName] = value
 
-    def template( self, fileName, obj=None ):
+    def template(self, fileName: str, obj=None):
         space = 0
         tabulation = 0
         result = ''
@@ -89,31 +91,34 @@ class Files:
 
         return result
 
-    def _inject( self, fileName, obj=None ):
+    def _inject(self, fileName: str, obj=None):
         includes = []
         result = []
-        for text in self.cashed.get( fileName ):
-            if len( text.strip() ) == 0:
+        for text in self.cashed.get(fileName):
+            if len(text.strip()) == 0:
                 continue
 
-            aux = text.strip().split( ' ', 1 )
-            if aux[0].strip() == 'include' and len( aux ) == 2:
-                self.add( aux[ 1 ] + '.suc' )
-                includes.append( aux[1] )
+            # Checks for special includes, styles and scripts
+            # TODO: Combine these 4 ifs into one proper method
+            aux = text.strip().split(' ', 1)
+            if aux[0].strip() == 'include' and len(aux) == 2:
+                self.add(aux[ 1 ] + '.suc')
+                includes.append(aux[1])
                 continue
 
-            if aux[ 0 ].strip() == 'style' and len( aux ) == 2:
-                name = aux[ 1 ] + '.css'
-                self.add( name )
-                self.styles.append( name )
+            if aux[0].strip() == 'style' and len(aux) == 2:
+                name = aux[1] + '.css'
+                self.add(name)
+                self.styles.append(name)
                 continue
 
-            if aux[ 0 ].strip() == 'script' and len( aux ) == 2:
-                name = aux[ 1 ] + '.js'
+            if aux[0].strip() == 'script' and len(aux) == 2:
+                name = aux[1] + '.js'
                 self.add( name )
                 self.scripts.append( name )
                 continue
 
+            # Inject includes that start with a plus sign: +
             if _substring( text.strip(), 0, 1 ) == '+':
                 indicative = _substring( text.strip() , 1, len( text.strip() ) ).strip()
                 space = ''
@@ -136,15 +141,15 @@ class Files:
 
         return result
 
-def _transform( text, obj=None ):
+def _transform(text: str, obj=None):
     msg = text.strip()
     properties = ''
     txt = ''
+    n = "\n"
 
     if msg.split('(')[0] == "list":
         params = msg.split('(')[1].split(')')[0].split(' ')
 
-        n = "\n"
 
         for param in params:
             if 'class=' in param:
@@ -153,6 +158,7 @@ def _transform( text, obj=None ):
                 break
         else:
             ul_class = None
+
         if len(params) == 1 or ul_class is not None:
             result = "<ul>" + n if ul_class is None else "<ul class=\"" + ul_class + "\">" + n
             newresult = []
@@ -177,7 +183,6 @@ def _transform( text, obj=None ):
                 result += line
             return [result, ""]
 
-
     if obj:
         while _instr( msg, '{' ) > 0:
             data = _substring( msg, _instr( msg, '{' ), _instr( msg, '}' ) + 1 )
@@ -189,20 +194,23 @@ def _transform( text, obj=None ):
 
     tag = msg
 
+    # Get the element attributes
     if '(' in msg:
         tag = _substring( msg, 0, _instr( msg, '(' ) )
-        properties = ' ' + _substring( msg, _instr( msg, '(' ) + 1, _instr( msg, ')' ) )
+        properties = msg[msg.find('(')+1:msg.rfind(')')]
         if _instr( msg, ')') +1 != len( msg ):
-            txt = _substring( msg, _instr( msg, ')' ) +2, len( msg ) )
-
+            txt = msg[msg.rfind(')')+1:].strip()
+    # If we have no attribute, try and find the text
     elif ' ' in msg:
         tag = _substring( msg, 0, _instr( msg, ' ' ) )
         if _instr( msg, ' ' ) +1 != len( msg ):
             txt = _substring( msg, _instr( msg, ' ' ) +1, len( msg ) )
 
-    result = '<' + tag + properties + '>\n' + txt
-
-    return [result, tag]
+    #result = '<' + tag + properties + '>\n' + txt
+    
+    attributes = f' {properties}' if properties else ''
+    tag_plus_txt = f'<{tag}{attributes}>{n}{txt}'
+    return [tag_plus_txt, tag]
 
 def _addrules( text, obj ):
     result = []

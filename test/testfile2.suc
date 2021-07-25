@@ -1,0 +1,1 @@
+div(v:onclick="function('hello')") Click me

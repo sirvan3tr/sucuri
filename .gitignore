@@ -4,3 +4,5 @@ sucuri.egg-info/
 dist/
 build/
 *.pyc
+*.swp
+.DS_Store/
