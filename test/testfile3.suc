@@ -1,0 +1,3 @@
+script test/static/js/script
+
+div(class="ten") Hello World! 

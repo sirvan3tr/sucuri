@@ -1,6 +1,9 @@
 import os
 
 class Files:
+    xbracket = '[['
+    ybracket = ']]'
+
     def __init__( self ):
         self.cashed = {}  # filename: list( file lines )
         self.styles = []
@@ -114,8 +117,8 @@ class Files:
 
             if aux[0].strip() == 'script' and len(aux) == 2:
                 name = aux[1] + '.js'
-                self.add( name )
-                self.scripts.append( name )
+                self.add(name)
+                self.scripts.append(name)
                 continue
 
             # Inject includes that start with a plus sign: +
@@ -140,6 +143,9 @@ class Files:
                 result.append(_replace(text, obj))
 
         return result
+
+xbracket = '[['
+ybracket = ']]'
 
 def _transform(text: str, obj=None):
     msg = text.strip()
@@ -184,8 +190,8 @@ def _transform(text: str, obj=None):
             return [result, ""]
 
     if obj:
-        while _instr( msg, '{' ) > 0:
-            data = _substring( msg, _instr( msg, '{' ), _instr( msg, '}' ) + 1 )
+        while _instr( msg, xbracket ) > 0:
+            data = _substring( msg, _instr( msg, xbracket ), _instr( msg, ybracket ) + 1 )
             elem = _substring( data, 1, len( data ) - 1 ).strip()
             if elem in obj:
                 msg = msg.replace( data, str( obj[ elem ] ) )
@@ -338,14 +344,15 @@ def _substring(text, ini, end):
 
 def _replace(text, obj=None):
     if obj:
-        while _instr(text, '{') > 0:
-            data = _substring(text, _instr(text, '{'), _instr(text, '}') +1)
-            elem = _substring(data, 1, len(data) -1).strip()
+        while text.count(xbracket) > 0:
+            data = text[text.find(xbracket):text.find(ybracket)+2]
+            elem = text[text.find(xbracket)+2:text.find(ybracket)].strip()
             idx = ""
             if _instr(elem, '[') > 0 and _instr(elem, ']') > 0:
                 idx = _substring(elem, _instr(elem, '[') +1, _instr(elem, ']'))
                 elem = _substring(elem, 0, _instr(elem, '['))
             if elem in obj:
+                vlr = ''
                 if idx == "":
                     vlr = str(obj[elem])
                 else:

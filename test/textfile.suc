@@ -1,1 +1,1 @@
-h1(class="text") Text {list[0]} {text}
+h1(class="text") Text [[text]] [[ no_var ]] What [[ x ]] {{ what_variable }}
